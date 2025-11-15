@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextInputDialog;
@@ -65,7 +66,22 @@ public class AlbumListController {
             titleLabel.setText("Albums for " + user.getUsername());
             albumListView.getItems().clear();
             for (Album album : user.getAlbums()) {
-                albumListView.getItems().add(album.getName());
+                // Create formatted string with album name, photo count, and date range
+                StringBuilder albumInfo = new StringBuilder(album.getName());
+                albumInfo.append(" (").append(album.getPhotoCount()).append(" photos)");
+                
+                if (album.getPhotoCount() > 0) {
+                    java.time.LocalDateTime earliest = album.getEarliestDate();
+                    java.time.LocalDateTime latest = album.getLatestDate();
+                    java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("MM/dd/yyyy");
+                    albumInfo.append(" [").append(earliest.format(formatter));
+                    if (!earliest.equals(latest)) {
+                        albumInfo.append(" - ").append(latest.format(formatter));
+                    }
+                    albumInfo.append("]");
+                }
+                
+                albumListView.getItems().add(albumInfo.toString());
             }
         }
     }
@@ -101,6 +117,129 @@ public class AlbumListController {
                 showError("Error Creating Album", e.getMessage());
             }
         });
+    }
+
+    /**
+     * Handles the open album button action.
+     * Opens the selected album to view its photos.
+     */
+    @FXML
+    private void handleOpenAlbum() {
+        String selected = albumListView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showError("No Selection", "Please select an album to open");
+            return;
+        }
+
+        // Extract album name from formatted string (everything before " (")
+        String albumName = selected.contains(" (") ? selected.substring(0, selected.indexOf(" (")) : selected;
+        Album album = user.getAlbum(albumName);
+        if (album == null) {
+            showError("Error", "Album not found");
+            return;
+        }
+
+        try {
+            Stage photoStage = (Stage) titleLabel.getScene().getWindow();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/PhotoViewScene.fxml"));
+            Scene scene = new Scene(loader.load());
+            
+            PhotoViewController controller = loader.getController();
+            controller.setStage(photoStage);
+            controller.setUserAndAlbum(user, album);
+            
+            photoStage.setScene(scene);
+        } catch (IOException e) {
+            showError("Error", "Failed to open album: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handles the rename album button action.
+     */
+    @FXML
+    private void handleRenameAlbum() {
+        String selected = albumListView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showError("No Selection", "Please select an album to rename");
+            return;
+        }
+
+        // Extract album name from formatted string (everything before " (")
+        String albumName = selected.contains(" (") ? selected.substring(0, selected.indexOf(" (")) : selected;
+        Album album = user.getAlbum(albumName);
+        if (album == null) {
+            showError("Error", "Album not found");
+            return;
+        }
+
+        TextInputDialog dialog = new TextInputDialog(albumName);
+        dialog.setTitle("Rename Album");
+        dialog.setHeaderText("Rename Album");
+        dialog.setContentText("New Name:");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(newName -> {
+            if (newName.trim().isEmpty()) {
+                showError("Invalid Input", "Album name cannot be empty");
+                return;
+            }
+
+            if (newName.equals(selected)) {
+                return; // No change
+            }
+
+            try {
+                if (user.getAlbum(newName) != null) {
+                    showError("Album Exists", "Album '" + newName + "' already exists");
+                    return;
+                }
+
+                album.setName(newName);
+                UserManager.saveUser(user);
+                loadAlbums();
+                showInfo("Success", "Album renamed to '" + newName + "'");
+            } catch (IOException e) {
+                showError("Error Renaming Album", e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Handles the delete album button action.
+     */
+    @FXML
+    private void handleDeleteAlbum() {
+        String selected = albumListView.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            showError("No Selection", "Please select an album to delete");
+            return;
+        }
+
+        // Extract album name from formatted string (everything before " (")
+        String albumName = selected.contains(" (") ? selected.substring(0, selected.indexOf(" (")) : selected;
+        Album album = user.getAlbum(albumName);
+        if (album == null) {
+            showError("Error", "Album not found");
+            return;
+        }
+
+        Alert confirmDialog = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmDialog.setTitle("Confirm Delete");
+        confirmDialog.setHeaderText("Delete Album?");
+        confirmDialog.setContentText("Are you sure you want to delete album '" + albumName + "'?\nThis cannot be undone.");
+
+        Optional<ButtonType> result = confirmDialog.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            try {
+                user.deleteAlbum(albumName);
+                UserManager.saveUser(user);
+                loadAlbums();
+                showInfo("Success", "Album '" + albumName + "' deleted successfully");
+            } catch (IOException e) {
+                showError("Error Deleting Album", e.getMessage());
+            }
+        }
     }
 
     /**

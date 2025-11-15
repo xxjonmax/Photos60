@@ -24,6 +24,9 @@
             <HBox spacing="10.0">
                <children>
                   <Button mnemonicParsing="false" onAction="#handleCreateAlbum" prefWidth="120.0" text="New Album" />
+                  <Button mnemonicParsing="false" onAction="#handleOpenAlbum" prefWidth="120.0" text="Open Album" />
+                  <Button mnemonicParsing="false" onAction="#handleRenameAlbum" prefWidth="120.0" text="Rename Album" />
+                  <Button mnemonicParsing="false" onAction="#handleDeleteAlbum" prefWidth="120.0" text="Delete Album" />
                   <Button mnemonicParsing="false" onAction="#handleSearch" prefWidth="120.0" text="Search" />
                   <Button mnemonicParsing="false" onAction="#handleLogout" prefWidth="120.0" text="Logout" />
                </children>

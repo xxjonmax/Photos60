@@ -23,9 +23,14 @@
             </Label>
             <HBox spacing="10.0">
                <children>
+                  <Button mnemonicParsing="false" onAction="#handleAddPhoto" prefWidth="100.0" text="Add Photo" />
                   <Button mnemonicParsing="false" onAction="#handlePrevious" prefWidth="100.0" text="Previous" />
                   <Button mnemonicParsing="false" onAction="#handleNext" prefWidth="100.0" text="Next" />
-                  <Button mnemonicParsing="false" onAction="#handleAddTag" prefWidth="120.0" text="Add Tag" />
+                  <Button mnemonicParsing="false" onAction="#handleEditCaption" prefWidth="120.0" text="Edit Caption" />
+                  <Button mnemonicParsing="false" onAction="#handleAddTag" prefWidth="100.0" text="Add Tag" />
+                  <Button mnemonicParsing="false" onAction="#handleDeleteTag" prefWidth="100.0" text="Delete Tag" />
+                  <Button mnemonicParsing="false" onAction="#handleCopyPhoto" prefWidth="120.0" text="Copy to Album" />
+                  <Button mnemonicParsing="false" onAction="#handleMovePhoto" prefWidth="120.0" text="Move to Album" />
                   <Button mnemonicParsing="false" onAction="#handleRemovePhoto" prefWidth="120.0" text="Remove Photo" />
                   <Button mnemonicParsing="false" onAction="#handleBack" prefWidth="100.0" text="Back" />
                </children>

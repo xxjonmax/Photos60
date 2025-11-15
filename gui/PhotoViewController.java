@@ -10,6 +10,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import photos.Album;
 import photos.Photo;
@@ -134,6 +135,79 @@ public class PhotoViewController {
     }
 
     /**
+     * Handles the add photo button action.
+     * Opens a file chooser to select an image file.
+     */
+    @FXML
+    private void handleAddPhoto() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Photo");
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp")
+        );
+        
+        java.io.File selectedFile = fileChooser.showOpenDialog(stage);
+        if (selectedFile != null) {
+            try {
+                // Get file modification date
+                java.nio.file.Path path = selectedFile.toPath();
+                java.time.LocalDateTime fileDate = java.time.LocalDateTime.ofInstant(
+                    java.nio.file.Files.getLastModifiedTime(path).toInstant(),
+                    java.time.ZoneId.systemDefault()
+                );
+                
+                // Create photo
+                Photo newPhoto = new Photo(selectedFile.getAbsolutePath(), fileDate);
+                
+                // Check if photo already exists in album
+                if (currentAlbum.containsPhoto(newPhoto)) {
+                    showError("Duplicate Photo", "This photo is already in the album");
+                    return;
+                }
+                
+                currentAlbum.addPhoto(newPhoto);
+                UserManager.saveUser(user);
+                
+                // Display the newly added photo
+                displayPhoto(currentAlbum.getPhotoCount() - 1);
+                showInfo("Success", "Photo added successfully");
+            } catch (Exception e) {
+                showError("Error Adding Photo", e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * Handles the edit caption button action.
+     */
+    @FXML
+    private void handleEditCaption() {
+        if (currentAlbum == null || currentAlbum.getPhotos().isEmpty()) {
+            showError("No Photo", "No photo to edit");
+            return;
+        }
+
+        Photo photo = currentAlbum.getPhotoAt(currentPhotoIndex);
+        
+        TextInputDialog dialog = new TextInputDialog(photo.getCaption());
+        dialog.setTitle("Edit Caption");
+        dialog.setHeaderText("Edit Photo Caption");
+        dialog.setContentText("Caption:");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(caption -> {
+            try {
+                photo.setCaption(caption.trim());
+                UserManager.saveUser(user);
+                displayPhoto(currentPhotoIndex);
+                showInfo("Success", "Caption updated successfully");
+            } catch (IOException e) {
+                showError("Error Updating Caption", e.getMessage());
+            }
+        });
+    }
+
+    /**
      * Handles the add tag button action.
      */
     @FXML
@@ -175,6 +249,178 @@ public class PhotoViewController {
                 }
             });
         });
+    }
+
+    /**
+     * Handles the delete tag button action.
+     */
+    @FXML
+    private void handleDeleteTag() {
+        if (currentAlbum == null || currentAlbum.getPhotos().isEmpty()) {
+            showError("No Photo", "No photo selected");
+            return;
+        }
+
+        Photo photo = currentAlbum.getPhotoAt(currentPhotoIndex);
+        
+        if (photo.getTags().isEmpty()) {
+            showError("No Tags", "This photo has no tags to delete");
+            return;
+        }
+
+        // Create a dialog to select tag to delete
+        ComboBox<String> tagCombo = new ComboBox<>();
+        for (Tag tag : photo.getTags()) {
+            tagCombo.getItems().add(tag.toString());
+        }
+        tagCombo.getSelectionModel().selectFirst();
+
+        Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
+        dialog.setTitle("Delete Tag");
+        dialog.setHeaderText("Select Tag to Delete");
+        dialog.getDialogPane().setContent(tagCombo);
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK && tagCombo.getValue() != null) {
+            String selectedTag = tagCombo.getValue();
+            
+            // Parse tag string back to Tag object
+            for (Tag tag : photo.getTags()) {
+                if (tag.toString().equals(selectedTag)) {
+                    try {
+                        photo.removeTag(tag);
+                        UserManager.saveUser(user);
+                        displayPhoto(currentPhotoIndex);
+                        showInfo("Success", "Tag deleted successfully");
+                    } catch (IOException e) {
+                        showError("Error Deleting Tag", e.getMessage());
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Handles the copy photo button action.
+     * Copies the current photo to another album.
+     */
+    @FXML
+    private void handleCopyPhoto() {
+        if (currentAlbum == null || currentAlbum.getPhotos().isEmpty()) {
+            showError("No Photo", "No photo to copy");
+            return;
+        }
+
+        Photo photo = currentAlbum.getPhotoAt(currentPhotoIndex);
+        
+        // Get list of other albums
+        ComboBox<String> albumCombo = new ComboBox<>();
+        for (Album album : user.getAlbums()) {
+            if (!album.getName().equals(currentAlbum.getName())) {
+                albumCombo.getItems().add(album.getName());
+            }
+        }
+        
+        if (albumCombo.getItems().isEmpty()) {
+            showError("No Albums", "No other albums available. Create another album first.");
+            return;
+        }
+        
+        albumCombo.getSelectionModel().selectFirst();
+
+        Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
+        dialog.setTitle("Copy Photo");
+        dialog.setHeaderText("Select Destination Album");
+        dialog.getDialogPane().setContent(albumCombo);
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK && albumCombo.getValue() != null) {
+            String destAlbumName = albumCombo.getValue();
+            Album destAlbum = user.getAlbum(destAlbumName);
+            
+            if (destAlbum != null) {
+                try {
+                    if (destAlbum.containsPhoto(photo)) {
+                        showError("Duplicate Photo", "Photo already exists in album '" + destAlbumName + "'");
+                        return;
+                    }
+                    
+                    destAlbum.addPhoto(photo);
+                    UserManager.saveUser(user);
+                    showInfo("Success", "Photo copied to album '" + destAlbumName + "'");
+                } catch (IOException e) {
+                    showError("Error Copying Photo", e.getMessage());
+                }
+            }
+        }
+    }
+
+    /**
+     * Handles the move photo button action.
+     * Moves the current photo to another album.
+     */
+    @FXML
+    private void handleMovePhoto() {
+        if (currentAlbum == null || currentAlbum.getPhotos().isEmpty()) {
+            showError("No Photo", "No photo to move");
+            return;
+        }
+
+        Photo photo = currentAlbum.getPhotoAt(currentPhotoIndex);
+        
+        // Get list of other albums
+        ComboBox<String> albumCombo = new ComboBox<>();
+        for (Album album : user.getAlbums()) {
+            if (!album.getName().equals(currentAlbum.getName())) {
+                albumCombo.getItems().add(album.getName());
+            }
+        }
+        
+        if (albumCombo.getItems().isEmpty()) {
+            showError("No Albums", "No other albums available. Create another album first.");
+            return;
+        }
+        
+        albumCombo.getSelectionModel().selectFirst();
+
+        Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
+        dialog.setTitle("Move Photo");
+        dialog.setHeaderText("Select Destination Album");
+        dialog.getDialogPane().setContent(albumCombo);
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK && albumCombo.getValue() != null) {
+            String destAlbumName = albumCombo.getValue();
+            Album destAlbum = user.getAlbum(destAlbumName);
+            
+            if (destAlbum != null) {
+                try {
+                    if (destAlbum.containsPhoto(photo)) {
+                        showError("Duplicate Photo", "Photo already exists in album '" + destAlbumName + "'");
+                        return;
+                    }
+                    
+                    destAlbum.addPhoto(photo);
+                    currentAlbum.removePhoto(photo);
+                    UserManager.saveUser(user);
+                    
+                    // Update display
+                    if (currentAlbum.getPhotoCount() == 0) {
+                        showInfo("Success", "Photo moved. Album is now empty.");
+                        handleBack();
+                    } else {
+                        if (currentPhotoIndex >= currentAlbum.getPhotoCount()) {
+                            currentPhotoIndex = currentAlbum.getPhotoCount() - 1;
+                        }
+                        displayPhoto(currentPhotoIndex);
+                        showInfo("Success", "Photo moved to album '" + destAlbumName + "'");
+                    }
+                } catch (IOException e) {
+                    showError("Error Moving Photo", e.getMessage());
+                }
+            }
+        }
     }
 
     /**
