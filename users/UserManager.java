@@ -165,16 +165,35 @@ public class UserManager {
     }
 
     /**
-     * Initializes the stock user with stock photos.
+     * Initializes default users (admin and stock) if they don't exist.
      * This should be called once during application startup.
      *
      * @throws IOException if there's an error
      */
-    public static void initializeStockUserIfNeeded() throws IOException {
+    public static void initializeDefaultUsers() throws IOException {
+        // Initialize admin user if needed
+        if (!userExists("admin")) {
+            Admin admin = new Admin();
+            saveUser(admin);
+        }
+        
+        // Initialize stock user if needed
         if (!userExists("stock")) {
-            User stockUser = new User("stock", "stock");
+            Stock stockUser = new Stock();
             stockUser.createAlbum("stock");
             saveUser(stockUser);
         }
+    }
+    
+    /**
+     * Initializes the stock user with stock photos.
+     * This should be called once during application startup.
+     *
+     * @throws IOException if there's an error
+     * @deprecated Use initializeDefaultUsers() instead
+     */
+    @Deprecated
+    public static void initializeStockUserIfNeeded() throws IOException {
+        initializeDefaultUsers();
     }
 }

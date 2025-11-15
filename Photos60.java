@@ -4,7 +4,9 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 import users.UserManager;
+import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 
 /**
  * Main entry point for the Photos60 application.
@@ -28,8 +30,12 @@ public class Photos60 extends Application {
             // Initialize the stock user if needed
             UserManager.initializeStockUserIfNeeded();
             
-            // Load the login scene
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/LoginScene.fxml"));
+            // Load the login scene from classpath
+            URL fxmlUrl = Photos60.class.getResource("/gui/LoginScene.fxml");
+            if (fxmlUrl == null) {
+                throw new IOException("Cannot find /gui/LoginScene.fxml on classpath");
+            }
+            FXMLLoader loader = new FXMLLoader(fxmlUrl);
             Scene scene = new Scene(loader.load());
             
             primaryStage.setTitle(APP_TITLE);

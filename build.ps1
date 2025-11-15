@@ -1,131 +1,149 @@
-# Photos60 - Build and Run Script
-# PowerShell script for Maven-based compilation and execution
+﻿# Photos60 - Build and Run Script
+# PowerShell script for direct compilation and execution with JavaFX SDK
 
 param(
     [Parameter(Mandatory=$false)]
-    [ValidateSet("build", "run", "clean", "package", "test", "docs")]
-    [string]$Action = "run"
+    [ValidateSet("compile", "run", "clean", "package")]
+    [string]$Action = "run",
+    
+    [Parameter(Mandatory=$false)]
+    [string]$JavaFXPath = "C:\openjfx-21.0.9_windows-x64_bin-sdk"
 )
 
-# Colors for output
-$green = "Green"
-$red = "Red"
-$yellow = "Yellow"
+$green = "Green"; $red = "Red"; $yellow = "Yellow"
 
 function Write-Header {
     param([string]$Message)
-    Write-Host "`n========================================" -ForegroundColor $yellow
+    Write-Host "`n======================================" -ForegroundColor $yellow
     Write-Host $Message -ForegroundColor $yellow
-    Write-Host "========================================`n" -ForegroundColor $yellow
+    Write-Host "======================================`n" -ForegroundColor $yellow
 }
 
 function Write-Success {
     param([string]$Message)
-    Write-Host "✓ $Message" -ForegroundColor $green
+    Write-Host "[OK] $Message" -ForegroundColor $green
 }
 
-function Write-Error {
+function Write-Err {
     param([string]$Message)
-    Write-Host "✗ $Message" -ForegroundColor $red
+    Write-Host "[ERROR] $Message" -ForegroundColor $red
 }
 
-# Check if Maven is installed
-Write-Header "Checking Prerequisites"
-try {
-    $mvnVersion = mvn --version
-    Write-Success "Maven is installed"
-    Write-Host $mvnVersion[0]
-} catch {
-    Write-Error "Maven is not installed or not in PATH"
-    Write-Host "Download Maven from https://maven.apache.org/download.cgi"
+# Detect JavaFX lib directory
+Write-Header "Detecting JavaFX SDK"
+if (-Not (Test-Path $JavaFXPath)) {
+    Write-Err "JavaFX SDK root not found at: $JavaFXPath"
+    Write-Host "Please ensure the SDK is extracted and the path is correct."
     exit 1
 }
 
-# Check if JDK 21 is configured
+$libCandidates = @(
+    (Join-Path $JavaFXPath 'javafx-sdk-21.0.9\lib'),
+    (Join-Path $JavaFXPath 'lib'),
+    (Join-Path $JavaFXPath 'javafx-sdk-21\lib')
+)
+
+$javafxLib = $null
+foreach ($candidate in $libCandidates) {
+    if (Test-Path $candidate) {
+        $javafxLib = $candidate
+        break
+    }
+}
+
+if (-Not $javafxLib) {
+    $found = Get-ChildItem -Path $JavaFXPath -Recurse -Directory -Filter lib -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($found) {
+        $javafxLib = $found.FullName
+    } else {
+        Write-Err "Could not locate lib directory under: $JavaFXPath"
+        exit 2
+    }
+}
+
+Write-Success "Found JavaFX lib: $javafxLib"
+
 try {
     $javaVersion = java -version 2>&1
-    if ($javaVersion -match "21") {
-        Write-Success "Java 21 is configured"
-        Write-Host ($javaVersion | Select-Object -First 1)
-    } else {
-        Write-Host "Warning: Java version may not be 21" -ForegroundColor $yellow
-        Write-Host ($javaVersion | Select-Object -First 1)
-    }
+    Write-Success "Java is installed"
+    Write-Host ($javaVersion | Select-Object -First 1)
 } catch {
-    Write-Error "Java is not installed or not in PATH"
+    Write-Err "Java is not installed or not in PATH"
     exit 1
 }
 
-# Execute requested action
 Write-Header "Executing Action: $Action"
 
 switch ($Action) {
-    "build" {
-        Write-Host "Building project with Maven..."
-        mvn clean compile
+    "compile" {
+        Write-Host "Compiling project..."
+        Remove-Item -Recurse -Force out -ErrorAction SilentlyContinue
+        New-Item -ItemType Directory out | Out-Null
+        $files = Get-ChildItem -Recurse -Filter *.java | ForEach-Object FullName
+        & javac --release 21 --module-path $javafxLib --add-modules javafx.controls,javafx.fxml -d out $files
         if ($LASTEXITCODE -eq 0) {
+            Copy-Item -Path gui\*.fxml -Destination out\gui -Force
             Write-Success "Build completed successfully"
         } else {
-            Write-Error "Build failed"
+            Write-Err "Compilation failed"
             exit 1
         }
     }
-    
     "run" {
-        Write-Host "Building and running application..."
-        mvn clean compile javafx:run
+        Write-Host "Compiling and running application..."
+        Remove-Item -Recurse -Force out -ErrorAction SilentlyContinue
+        New-Item -ItemType Directory out | Out-Null
+        $files = Get-ChildItem -Recurse -Filter *.java | ForEach-Object FullName
+        & javac --release 21 --module-path $javafxLib --add-modules javafx.controls,javafx.fxml -d out $files
+        if ($LASTEXITCODE -ne 0) {
+            Write-Err "Compilation failed"
+            exit 1
+        }
+        Copy-Item -Path gui\*.fxml -Destination out\gui -Force
+        Write-Success "Compilation completed"
+        Write-Host "`nStarting Photos60..."
+        & java --enable-native-access=javafx.graphics --module-path $javafxLib --add-modules javafx.controls,javafx.fxml -cp "out;." Photos60
         if ($LASTEXITCODE -eq 0) {
             Write-Success "Application exited normally"
         } else {
-            Write-Error "Application failed to run"
+            Write-Err "Application exited with code: $LASTEXITCODE"
             exit 1
         }
     }
-    
     "clean" {
         Write-Host "Cleaning build artifacts..."
-        mvn clean
-        if ($LASTEXITCODE -eq 0) {
+        Remove-Item -Recurse -Force out -ErrorAction SilentlyContinue
+        if ($?) {
             Write-Success "Project cleaned successfully"
         } else {
-            Write-Error "Clean failed"
+            Write-Err "Clean failed"
             exit 1
         }
     }
-    
     "package" {
-        Write-Host "Packaging application as JAR..."
-        mvn clean package
-        if ($LASTEXITCODE -eq 0) {
-            Write-Success "Package created: target/photos60.jar"
-            Write-Host "Run with: java -jar target/photos60.jar"
-        } else {
-            Write-Error "Packaging failed"
+        Write-Host "Creating executable JAR..."
+        Remove-Item -Recurse -Force out -ErrorAction SilentlyContinue
+        New-Item -ItemType Directory out | Out-Null
+        $files = Get-ChildItem -Recurse -Filter *.java | ForEach-Object FullName
+        & javac --release 21 --module-path $javafxLib --add-modules javafx.controls,javafx.fxml -d out $files
+        if ($LASTEXITCODE -ne 0) {
+            Write-Err "Compilation failed"
             exit 1
         }
-    }
-    
-    "test" {
-        Write-Host "Running tests..."
-        mvn test
+        Remove-Item -Recurse -Force out\gui -ErrorAction SilentlyContinue
+        New-Item -ItemType Directory out\gui | Out-Null
+        Copy-Item -Path gui\*.fxml -Destination out\gui -Force
+        Copy-Item -Path data -Destination out\data -Recurse -Force -ErrorAction SilentlyContinue
+        New-Item -ItemType Directory target -ErrorAction SilentlyContinue | Out-Null
+        & jar -cfe target\photos60.jar Photos60 -C out .
         if ($LASTEXITCODE -eq 0) {
-            Write-Success "All tests passed"
+            Write-Success "Package created: target\photos60.jar"
+            Write-Host "Run with: java --module-path `"$javafxLib`" --add-modules javafx.controls,javafx.fxml -jar target\photos60.jar"
         } else {
-            Write-Error "Some tests failed"
-            exit 1
-        }
-    }
-    
-    "docs" {
-        Write-Host "Generating Javadoc..."
-        mvn javadoc:generate
-        if ($LASTEXITCODE -eq 0) {
-            Write-Success "Javadoc generated: target/site/apidocs/index.html"
-        } else {
-            Write-Error "Javadoc generation failed"
+            Write-Err "Packaging failed"
             exit 1
         }
     }
 }
 
-Write-Host "`n✓ Operation completed" -ForegroundColor $green
+Write-Host "`n[OK] Operation completed" -ForegroundColor $green
