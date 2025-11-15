@@ -1,12 +1,9 @@
 package gui;
 
 /**
- *  open login GUI
- *  allow users to input their usernames
- *  include stock and admin as special users
- *     stock only gets access to stock photos
- *     admin can list, create, and delete users
+ * Placeholder class to avoid duplicate public controller definitions.
+ * The actual controller used by FXML is `LoginController` in `LoginController.java`.
  */
-public class Login {
-
+class LoginPlaceholder {
+    // Intentionally empty.
 }
