@@ -223,7 +223,7 @@ public class PhotoViewController {
     private void handleBack() {
         try {
             Stage albumStage = (Stage) albumTitleLabel.getScene().getWindow();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("AlbumListScene.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/AlbumListScene.fxml"));
             Scene scene = new Scene(loader.load());
             
             AlbumListController controller = loader.getController();

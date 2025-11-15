@@ -52,14 +52,14 @@ public class LoginController {
             
             if (username.equals("admin")) {
                 // Load admin scene
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("AdminScene.fxml"));
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/AdminScene.fxml"));
                 Scene scene = new Scene(loader.load());
                 AdminController controller = loader.getController();
                 controller.setStage(stage);
                 stage.setScene(scene);
             } else {
                 // Load user scene
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("AlbumListScene.fxml"));
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/AlbumListScene.fxml"));
                 Scene scene = new Scene(loader.load());
                 AlbumListController controller = loader.getController();
                 controller.setStage(stage);

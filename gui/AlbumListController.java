@@ -110,7 +110,7 @@ public class AlbumListController {
     private void handleSearch() {
         try {
             Stage searchStage = (Stage) titleLabel.getScene().getWindow();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("SearchScene.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/SearchScene.fxml"));
             Scene scene = new Scene(loader.load());
             
             SearchController controller = loader.getController();
@@ -133,7 +133,7 @@ public class AlbumListController {
             UserManager.saveUser(user);
             
             Stage loginStage = (Stage) titleLabel.getScene().getWindow();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("LoginScene.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/LoginScene.fxml"));
             Scene scene = new Scene(loader.load());
             loginStage.setScene(scene);
         } catch (IOException e) {

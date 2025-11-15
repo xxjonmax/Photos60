@@ -5,7 +5,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
@@ -22,8 +21,6 @@ import java.util.Optional;
  * @author Group XX
  */
 public class AdminController {
-    @FXML
-    private Label titleLabel;
     @FXML
     private ListView<String> userListView;
     
@@ -131,8 +128,8 @@ public class AdminController {
     @FXML
     private void handleBack() {
         try {
-            Stage primaryStage = (Stage) titleLabel.getScene().getWindow();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("LoginScene.fxml"));
+            Stage primaryStage = (Stage) userListView.getScene().getWindow();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/LoginScene.fxml"));
             Scene scene = new Scene(loader.load());
             primaryStage.setScene(scene);
         } catch (IOException e) {

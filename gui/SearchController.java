@@ -42,8 +42,6 @@ public class SearchController {
     private ComboBox<String> logicCombo;
     @FXML
     private ListView<String> resultsListView;
-    @FXML
-    private Label titleLabel;
     
     private Stage stage;
     private User user;
@@ -288,8 +286,8 @@ public class SearchController {
     @FXML
     private void handleBack() {
         try {
-            Stage albumStage = (Stage) titleLabel.getScene().getWindow();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("AlbumListScene.fxml"));
+            Stage albumStage = (Stage) resultsListView.getScene().getWindow();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gui/AlbumListScene.fxml"));
             Scene scene = new Scene(loader.load());
             
             AlbumListController controller = loader.getController();
