@@ -101,8 +101,8 @@ switch ($Action) {
         }
         Copy-Item -Path gui\*.fxml -Destination out\gui -Force
         Write-Success "Compilation completed"
-        Write-Host "`nStarting Photos60..."
-        & java --enable-native-access=javafx.graphics --module-path $javafxLib --add-modules javafx.controls,javafx.fxml -cp "out;." Photos60
+        Write-Host "`nStarting Photos..."
+        & java --enable-native-access=javafx.graphics --module-path $javafxLib --add-modules javafx.controls,javafx.fxml -cp "out;." Photos
         if ($LASTEXITCODE -eq 0) {
             Write-Success "Application exited normally"
         } else {
@@ -135,7 +135,7 @@ switch ($Action) {
         Copy-Item -Path gui\*.fxml -Destination out\gui -Force
         Copy-Item -Path data -Destination out\data -Recurse -Force -ErrorAction SilentlyContinue
         New-Item -ItemType Directory target -ErrorAction SilentlyContinue | Out-Null
-        & jar -cfe target\photos60.jar Photos60 -C out .
+        & jar -cfe target\photos60.jar Photos -C out .
         if ($LASTEXITCODE -eq 0) {
             Write-Success "Package created: target\photos60.jar"
             Write-Host "Run with: java --module-path `"$javafxLib`" --add-modules javafx.controls,javafx.fxml -jar target\photos60.jar"

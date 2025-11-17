@@ -23,7 +23,7 @@ import java.net.URL;
  * 
  * @author Group 60
  */
-public class Photos60 extends Application {
+public class Photos extends Application {
     public static final String APP_TITLE = "Photos";
     
     @Override
@@ -33,7 +33,7 @@ public class Photos60 extends Application {
             UserManager.initializeStockUserIfNeeded();
             
             // Load the login scene from classpath
-            URL fxmlUrl = Photos60.class.getResource("/gui/LoginScene.fxml");
+            URL fxmlUrl = Photos.class.getResource("/gui/LoginScene.fxml");
             if (fxmlUrl == null) {
                 throw new IOException("Cannot find /gui/LoginScene.fxml on classpath");
             }
