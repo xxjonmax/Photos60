@@ -9,7 +9,7 @@ import photos.Album;
  * Represents a user of the photo application.
  * A user has a username, password, and a collection of albums.
  * 
- * @author Group XX
+ * @author Group 60
  */
 public class User implements Serializable {
     private static final long serialVersionUID = 1L;

@@ -12,9 +12,9 @@ import java.io.IOException;
 
 /**
  * Controller for the login screen.
- * Handles user authentication and navigation to appropriate subsystem (admin or user).
+ * Handles user authentication and navigation to appropriate screens.
  * 
- * @author Group XX
+ * @author Group 60
  */
 public class LoginController {
     @FXML

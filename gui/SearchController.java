@@ -21,7 +21,7 @@ import java.util.Optional;
  * Controller for the photo search screen.
  * Provides search functionality by date range and tags.
  * 
- * @author Group XX
+ * @author Group 60
  */
 public class SearchController {
     @FXML
@@ -82,6 +82,7 @@ public class SearchController {
         // Handle search type changes
         searchTypeCombo.setOnAction(e -> handleSearchTypeChange());
         tagTypeCombo.setOnAction(e -> handleTagTypeChange());
+        tag2TypeCombo.setOnAction(e -> handleTag2TypeChange());
     }
 
     /**
@@ -146,6 +147,22 @@ public class SearchController {
         List<Photo> allPhotos = getAllPhotos();
         List<String> values = SearchPhotos.getTagValues(allPhotos, tagType);
         tagValueCombo.getItems().addAll(values);
+    }
+
+    /**
+     * Handles second tag type selection change.
+     */
+    @FXML
+    private void handleTag2TypeChange() {
+        String tagType = tag2TypeCombo.getValue();
+        if (tagType == null || tagType.isEmpty()) {
+            return;
+        }
+
+        tag2ValueCombo.getItems().clear();
+        List<Photo> allPhotos = getAllPhotos();
+        List<String> values = SearchPhotos.getTagValues(allPhotos, tagType);
+        tag2ValueCombo.getItems().addAll(values);
     }
 
     /**

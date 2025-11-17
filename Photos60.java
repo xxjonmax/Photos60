@@ -9,8 +9,8 @@ import java.io.IOException;
 import java.net.URL;
 
 /**
- * Main entry point for the Photos60 application.
- * A single-user photo management application built with JavaFX.
+ * Main entry point for the Photos application.
+ * A photo management application built with JavaFX.
  * 
  * Features:
  * - User login and authentication (admin, stock, or regular users)
@@ -19,10 +19,12 @@ import java.net.URL;
  * - Photo search (by date range or tags)
  * - Stock photos pre-loaded with the application
  * 
- * @author Group XX
+ * Usage: java Photos
+ * 
+ * @author Group 60
  */
 public class Photos60 extends Application {
-    public static final String APP_TITLE = "Photos60";
+    public static final String APP_TITLE = "Photos";
     
     @Override
     public void start(Stage primaryStage) {

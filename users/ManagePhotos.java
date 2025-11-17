@@ -6,7 +6,7 @@ import photos.Photo;
  * Interface for managing photos in albums.
  * Provides operations for adding, removing, copying, and moving photos.
  * 
- * @author Group XX
+ * @author Group 60
  */
 public interface ManagePhotos {
 

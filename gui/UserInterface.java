@@ -14,9 +14,9 @@ package gui;
  * - Display individual photos with full details
  * - Slideshow functionality (navigate forward/backward through album photos)
  * - Logout functionality returning to login screen
- * - Safe quit functionality
+ * Safe quit functionality
  * 
- * @author Group XX
+ * @author Group 60
  */
 public class UserInterface {
     // Placeholder for UI utilities

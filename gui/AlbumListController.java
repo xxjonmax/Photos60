@@ -20,7 +20,7 @@ import java.util.Optional;
  * Controller for the album list screen.
  * Displays all albums for a user and handles album management operations.
  * 
- * @author Group XX
+ * @author Group 60
  */
 public class AlbumListController {
     @FXML

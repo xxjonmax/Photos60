@@ -8,7 +8,7 @@ import java.util.*;
  * Utility class for searching photos based on various criteria.
  * Supports date range searches, tag-based searches, and conjunctions/disjunctions.
  * 
- * @author Group XX
+ * @author Group 60
  */
 public class SearchPhotos {
 

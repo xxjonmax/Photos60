@@ -6,7 +6,7 @@ import java.io.Serializable;
  * Represents a tag that can be applied to a photo.
  * A tag consists of a type (e.g., "location", "person") and a value (e.g., "Prague", "Alice").
  * 
- * @author Group XX
+ * @author Group 60
  */
 public class Tag implements Serializable {
     private static final long serialVersionUID = 1L;

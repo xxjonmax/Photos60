@@ -11,7 +11,7 @@ import java.time.ZoneId;
  * Utility class for managing photos.
  * Provides methods for loading photos from the filesystem and getting photo metadata.
  * 
- * @author Group XX
+ * @author Group 60
  */
 public class PhotoManager {
 

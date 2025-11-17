@@ -18,7 +18,7 @@ import java.util.Optional;
  * Controller for the admin screen.
  * Handles admin operations: list users, create users, delete users.
  * 
- * @author Group XX
+ * @author Group 60
  */
 public class AdminController {
     @FXML

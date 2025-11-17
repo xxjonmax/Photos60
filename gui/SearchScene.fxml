@@ -66,7 +66,7 @@
                      <children>
                         <ComboBox fx:id="logicCombo" prefWidth="80.0" />
                         <Label text="Type:" />
-                        <ComboBox fx:id="tag2TypeCombo" onAction="#handleTagTypeChange" prefWidth="120.0" />
+                        <ComboBox fx:id="tag2TypeCombo" onAction="#handleTag2TypeChange" prefWidth="120.0" />
                         <Label text="Value:" />
                         <ComboBox fx:id="tag2ValueCombo" prefWidth="120.0" />
                      </children>

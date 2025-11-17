@@ -10,7 +10,7 @@ import java.util.List;
  * A photo has a file path, date taken, caption, and list of tags.
  * The date is derived from the file's last modification time.
  * 
- * @author Group XX
+ * @author Group 60
  */
 public class Photo implements Serializable {
     private static final long serialVersionUID = 1L;

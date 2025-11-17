@@ -25,7 +25,7 @@ import java.util.Optional;
  * Controller for the photo view screen.
  * Displays photos from an album with details and allows photo management.
  * 
- * @author Group XX
+ * @author Group 60
  */
 public class PhotoViewController {
     @FXML

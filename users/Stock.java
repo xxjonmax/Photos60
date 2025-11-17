@@ -5,7 +5,7 @@ package users;
  * The stock user contains pre-loaded stock photos in a "stock" album.
  * Default password is "stock".
  * 
- * @author Group XX
+ * @author Group 60
  */
 public class Stock extends User {
     private static final long serialVersionUID = 1L;

@@ -10,7 +10,7 @@ import java.nio.file.Paths;
  * Manages user accounts and persistence.
  * Handles user creation, deletion, retrieval, and serialization to disk.
  * 
- * @author Group XX
+ * @author Group 60
  */
 public class UserManager {
     private static final String USERS_DIR = "data/users";
@@ -151,7 +151,7 @@ public class UserManager {
 
     /**
      * Creates a new user.
-     * Also initializes the stock user with the stock album if it doesn't exist.
+     * All non-admin users get a default "stock" album with stock photos.
      *
      * @param username the username for the new user
      * @param password the password for the new user
@@ -160,6 +160,12 @@ public class UserManager {
      */
     public static User createUser(String username, String password) throws IOException {
         User user = new User(username, password);
+        
+        // All non-admin users get the stock album
+        if (!username.equals("admin")) {
+            loadStockPhotos(user);
+        }
+        
         saveUser(user);
         return user;
     }
@@ -180,9 +186,69 @@ public class UserManager {
         // Initialize stock user if needed
         if (!userExists("stock")) {
             Stock stockUser = new Stock();
-            stockUser.createAlbum("stock");
+            loadStockPhotos(stockUser);
             saveUser(stockUser);
         }
+    }
+    
+    /**
+     * Loads stock photos into the stock user's album.
+     * Creates a "stock" album and adds all photos from data/photos/stock directory.
+     *
+     * @param stockUser the stock user
+     * @throws IOException if there's an error loading photos
+     */
+    private static void loadStockPhotos(User stockUser) throws IOException {
+        // Create stock album
+        stockUser.createAlbum("stock");
+        photos.Album stockAlbum = stockUser.getAlbum("stock");
+        
+        if (stockAlbum == null) {
+            return; // Album creation failed
+        }
+        
+        // Path to stock photos directory
+        String stockPhotosDir = "data/photos/stock";
+        java.nio.file.Path stockPath = Paths.get(stockPhotosDir);
+        
+        if (!Files.exists(stockPath)) {
+            // Create the directory if it doesn't exist
+            Files.createDirectories(stockPath);
+            return;
+        }
+        
+        // Load all image files from the stock directory
+        Files.list(stockPath)
+            .filter(path -> {
+                String fileName = path.getFileName().toString().toLowerCase();
+                return fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || 
+                       fileName.endsWith(".png") || fileName.endsWith(".gif") || 
+                       fileName.endsWith(".bmp");
+            })
+            .forEach(path -> {
+                try {
+                    // Get file modification date
+                    java.time.LocalDateTime fileDate = java.time.LocalDateTime.ofInstant(
+                        Files.getLastModifiedTime(path).toInstant(),
+                        java.time.ZoneId.systemDefault()
+                    );
+                    
+                    // Create photo with absolute path
+                    photos.Photo photo = new photos.Photo(path.toAbsolutePath().toString(), fileDate);
+                    
+                    // Set a basic caption based on filename
+                    String fileName = path.getFileName().toString();
+                    String caption = fileName.substring(0, fileName.lastIndexOf('.'));
+                    caption = caption.replace('_', ' ');
+                    caption = caption.substring(0, 1).toUpperCase() + caption.substring(1);
+                    photo.setCaption(caption);
+                    
+                    // Add photo to album
+                    stockAlbum.addPhoto(photo);
+                } catch (Exception e) {
+                    System.err.println("Error loading stock photo " + path + ": " + e.getMessage());
+                }
+            });
     }
     
     /**
